@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.expert.client.WeatherClient;
 import org.example.expert.domain.common.exception.InvalidRequestException;
 import org.example.expert.domain.todo.dto.request.TodoSaveRequest;
+import org.example.expert.domain.todo.dto.response.SearchTodoResponse;
 import org.example.expert.domain.todo.dto.response.TodoResponse;
 import org.example.expert.domain.todo.dto.response.TodoSaveResponse;
 import org.example.expert.domain.todo.entity.Todo;
@@ -25,7 +26,7 @@ public class TodoService {
 
     private final TodoRepository todoRepository;
     private final WeatherClient weatherClient;
-    private final JPAQueryFactory jpaQueryFactory;
+
 
     @Transactional
     public TodoSaveResponse saveTodo(User authUser, TodoSaveRequest todoSaveRequest) {
@@ -82,5 +83,11 @@ public class TodoService {
                 todo.getCreatedAt(),
                 todo.getModifiedAt()
         );
+    }
+
+    public Page<SearchTodoResponse> searchTodos(int page, int size, String title, String manager, LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        return todoRepository.searchTodosWithFilters(title, manager, startDateTime, endDateTime, pageable)
+                .orElseThrow(() -> new InvalidRequestException("Todo not found"));
     }
 }
