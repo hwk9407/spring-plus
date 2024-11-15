@@ -3,7 +3,6 @@ package org.example.expert.domain.todo.service;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.example.expert.client.WeatherClient;
-import org.example.expert.domain.common.dto.AuthUser;
 import org.example.expert.domain.common.exception.InvalidRequestException;
 import org.example.expert.domain.todo.dto.request.TodoSaveRequest;
 import org.example.expert.domain.todo.dto.response.TodoResponse;
@@ -29,8 +28,7 @@ public class TodoService {
     private final JPAQueryFactory jpaQueryFactory;
 
     @Transactional
-    public TodoSaveResponse saveTodo(AuthUser authUser, TodoSaveRequest todoSaveRequest) {
-        User user = User.fromAuthUser(authUser);
+    public TodoSaveResponse saveTodo(User authUser, TodoSaveRequest todoSaveRequest) {
 
         String weather = weatherClient.getTodayWeather();
 
@@ -38,7 +36,7 @@ public class TodoService {
                 todoSaveRequest.getTitle(),
                 todoSaveRequest.getContents(),
                 weather,
-                user
+                authUser
         );
         Todo savedTodo = todoRepository.save(newTodo);
 
@@ -47,7 +45,7 @@ public class TodoService {
                 savedTodo.getTitle(),
                 savedTodo.getContents(),
                 weather,
-                new UserResponse(user.getId(), user.getEmail())
+                new UserResponse(authUser.getId(), authUser.getEmail())
         );
     }
 
