@@ -32,7 +32,11 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain filterChain) throws ServletException, IOException {
-
+        String path = req.getRequestURI();
+        if (path.startsWith("/auth/")) {
+            filterChain.doFilter(req, res); // 검증을 건너뛰고 다음 필터로
+            return;
+        }
         String bearerJwt = req.getHeader("Authorization");
 
         if (bearerJwt == null) {
