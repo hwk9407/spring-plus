@@ -1,7 +1,11 @@
 package org.example.expert.domain.manager.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.expert.domain.common.exception.InvalidRequestException;
+import org.example.expert.domain.log.dto.request.LogAddDto;
+import org.example.expert.domain.log.enums.EntityType;
+import org.example.expert.domain.log.service.LogService;
 import org.example.expert.domain.manager.dto.request.ManagerSaveRequest;
 import org.example.expert.domain.manager.dto.response.ManagerResponse;
 import org.example.expert.domain.manager.dto.response.ManagerSaveResponse;
@@ -22,14 +26,21 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j(topic = "매니저 서비스 로그")
 public class ManagerService {
 
     private final ManagerRepository managerRepository;
     private final UserRepository userRepository;
     private final TodoRepository todoRepository;
+    private final LogService logService;
 
     @Transactional
     public ManagerSaveResponse saveManager(User authUser, long todoId, ManagerSaveRequest managerSaveRequest) {
+        log.info("log 기록 수행");
+        LogAddDto logAddDto = new LogAddDto(authUser.getId(), todoId, EntityType.TODO, "담당자 추가 등록 요청 수행");
+        logService.add(logAddDto);
+        log.info("log 기록 수행 종료");
+
         Todo todo = todoRepository.findById(todoId)
                 .orElseThrow(() -> new InvalidRequestException("Todo not found"));
 
