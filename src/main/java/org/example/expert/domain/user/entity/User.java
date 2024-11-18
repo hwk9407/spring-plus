@@ -28,7 +28,7 @@ public class User extends Timestamped {
         this.userRole = userRole;
     }
 
-    private User(Long id, String email, String nickname, UserRole userRole) {
+    public User(Long id, String email, String nickname, UserRole userRole) {
         this.id = id;
         this.email = email;
         this.nickname = nickname;
