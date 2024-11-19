@@ -53,6 +53,7 @@ public class WebSecurityConfig {
         http.authorizeHttpRequests((authorizeHttpRequests) ->
                 authorizeHttpRequests
                         .requestMatchers("/auth/**").permitAll() // '/auth/'로 시작하는 요청 모두 접근 허가
+                        .requestMatchers("/health").permitAll()   // /health 요청에 대해 접근 허용
                         .anyRequest().authenticated()
         );
 
