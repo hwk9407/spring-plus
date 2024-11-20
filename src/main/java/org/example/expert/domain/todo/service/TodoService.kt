@@ -1,93 +1,102 @@
-package org.example.expert.domain.todo.service;
+package org.example.expert.domain.todo.service
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
-import org.example.expert.client.WeatherClient;
-import org.example.expert.domain.common.exception.InvalidRequestException;
-import org.example.expert.domain.todo.dto.request.TodoSaveRequest;
-import org.example.expert.domain.todo.dto.response.SearchTodoResponse;
-import org.example.expert.domain.todo.dto.response.TodoResponse;
-import org.example.expert.domain.todo.dto.response.TodoSaveResponse;
-import org.example.expert.domain.todo.entity.Todo;
-import org.example.expert.domain.todo.repository.TodoRepository;
-import org.example.expert.domain.user.dto.response.UserResponse;
-import org.example.expert.domain.user.entity.User;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
+import lombok.RequiredArgsConstructor
+import org.example.expert.client.WeatherClient
+import org.example.expert.domain.common.exception.InvalidRequestException
+import org.example.expert.domain.todo.dto.request.TodoSaveRequest
+import org.example.expert.domain.todo.dto.response.SearchTodoResponse
+import org.example.expert.domain.todo.dto.response.TodoResponse
+import org.example.expert.domain.todo.dto.response.TodoSaveResponse
+import org.example.expert.domain.todo.entity.Todo
+import org.example.expert.domain.todo.repository.TodoRepository
+import org.example.expert.domain.user.dto.response.UserResponse
+import org.example.expert.domain.user.entity.User
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
 @Service
-@RequiredArgsConstructor
-public class TodoService {
-
-    private final TodoRepository todoRepository;
-    private final WeatherClient weatherClient;
-
+class TodoService(
+    private val todoRepository: TodoRepository,
+    private val weatherClient: WeatherClient
+) {
 
     @Transactional
-    public TodoSaveResponse saveTodo(User authUser, TodoSaveRequest todoSaveRequest) {
+    fun saveTodo(authUser: User, todoSaveRequest: TodoSaveRequest): TodoSaveResponse {
+        val weather = weatherClient.todayWeather
 
-        String weather = weatherClient.getTodayWeather();
+        val newTodo = Todo(
+            todoSaveRequest.title,
+            todoSaveRequest.contents,
+            weather,
+            authUser
+        )
+        val savedTodo = todoRepository.save(newTodo)
 
-        Todo newTodo = new Todo(
-                todoSaveRequest.getTitle(),
-                todoSaveRequest.getContents(),
-                weather,
-                authUser
-        );
-        Todo savedTodo = todoRepository.save(newTodo);
-
-        return new TodoSaveResponse(
-                savedTodo.getId(),
-                savedTodo.getTitle(),
-                savedTodo.getContents(),
-                weather,
-                new UserResponse(authUser.getId(), authUser.getEmail())
-        );
+        return TodoSaveResponse(
+            savedTodo.id,
+            savedTodo.title,
+            savedTodo.contents,
+            weather,
+            UserResponse(authUser.id, authUser.email)
+        )
     }
 
     @Transactional(readOnly = true)
-    public Page<TodoResponse> getTodos(int page, int size, String weather, LocalDateTime startDate, LocalDateTime endDate) {
-        Pageable pageable = PageRequest.of(page - 1, size);
+    fun getTodos(
+        page: Int,
+        size: Int,
+        weather: String?,
+        startDate: LocalDateTime?,
+        endDate: LocalDateTime?
+    ): Page<TodoResponse> {
+        val pageable: Pageable = PageRequest.of(page - 1, size)
 
-        Page<Todo> todos = todoRepository.findAllByWeatherAndDateRange(weather, startDate, endDate, pageable);
+        val todos = todoRepository.findAllByWeatherAndDateRange(weather, startDate, endDate, pageable)
 
-        return todos.map(todo -> new TodoResponse(
-                todo.getId(),
-                todo.getTitle(),
-                todo.getContents(),
-                todo.getWeather(),
-                new UserResponse(todo.getUser().getId(), todo.getUser().getEmail()),
-                todo.getCreatedAt(),
-                todo.getModifiedAt()
-        ));
+        return todos.map { todo: Todo ->
+            TodoResponse(
+                todo.id,
+                todo.title,
+                todo.contents,
+                todo.weather,
+                UserResponse(todo.user.id, todo.user.email),
+                todo.createdAt,
+                todo.modifiedAt
+            )
+        }
     }
 
     @Transactional(readOnly = true)
-    public TodoResponse getTodo(long todoId) {
-        Todo todo = todoRepository.findByIdWithUser(todoId)
-                .orElseThrow(() -> new InvalidRequestException("Todo not found"));
+    fun getTodo(todoId: Long): TodoResponse {
+        val todo = todoRepository.findByIdWithUser(todoId) ?: throw InvalidRequestException("Todo not found")
 
-        User user = todo.getUser();
+        val user = todo.user
 
-        return new TodoResponse(
-                todo.getId(),
-                todo.getTitle(),
-                todo.getContents(),
-                todo.getWeather(),
-                new UserResponse(user.getId(), user.getEmail()),
-                todo.getCreatedAt(),
-                todo.getModifiedAt()
-        );
+        return TodoResponse(
+            todo.id,
+            todo.title,
+            todo.contents,
+            todo.weather,
+            UserResponse(user.id, user.email),
+            todo.createdAt,
+            todo.modifiedAt
+        )
     }
 
-    public Page<SearchTodoResponse> searchTodos(int page, int size, String title, String manager, LocalDateTime startDateTime, LocalDateTime endDateTime) {
-        Pageable pageable = PageRequest.of(page - 1, size);
+    fun searchTodos(
+        page: Int,
+        size: Int,
+        title: String?,
+        manager: String?,
+        startDateTime: LocalDateTime?,
+        endDateTime: LocalDateTime?
+    ): Page<SearchTodoResponse> {
+        val pageable: Pageable = PageRequest.of(page - 1, size)
         return todoRepository.searchTodosWithFilters(title, manager, startDateTime, endDateTime, pageable)
-                .orElseThrow(() -> new InvalidRequestException("Todo not found"));
+            ?: throw InvalidRequestException("Todo not found")
     }
 }
