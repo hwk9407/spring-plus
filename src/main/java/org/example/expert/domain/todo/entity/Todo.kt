@@ -1,43 +1,34 @@
 package org.example.expert.domain.todo.entity;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.example.expert.domain.comment.entity.Comment;
-import org.example.expert.domain.common.entity.Timestamped;
-import org.example.expert.domain.manager.entity.Manager;
-import org.example.expert.domain.user.entity.User;
+import jakarta.persistence.*
+import org.example.expert.domain.comment.entity.Comment
+import org.example.expert.domain.common.entity.Timestamped
+import org.example.expert.domain.manager.entity.Manager
+import org.example.expert.domain.user.entity.User
 
-import java.util.ArrayList;
-import java.util.List;
-
-@Getter
 @Entity
-@NoArgsConstructor
 @Table(name = "todos")
-public class Todo extends Timestamped {
-
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String title;
-    private String contents;
-    private String weather;
+data class Todo(
+    var title: String,
+    var contents: String,
+    var weather: String,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    val user: User,
 
-    @OneToMany(mappedBy = "todo", cascade = CascadeType.REMOVE)
-    private List<Comment> comments = new ArrayList<>();
+) : Timestamped() {
 
-    @OneToMany(mappedBy = "todo", cascade = CascadeType.ALL)
-    private List<Manager> managers = new ArrayList<>();
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long? = null
 
-    public Todo(String title, String contents, String weather, User user) {
-        this.title = title;
-        this.contents = contents;
-        this.weather = weather;
-        this.user = user;
-        this.managers.add(new Manager(user, this));
+    @OneToMany(mappedBy = "todo", cascade = [CascadeType.REMOVE])
+    val comments: MutableList<Comment> = mutableListOf()
+
+    @OneToMany(mappedBy = "todo", cascade = [CascadeType.ALL])
+    val managers: MutableList<Manager> = mutableListOf()
+
+    init {
+        managers.add(Manager(user, this))
     }
 }

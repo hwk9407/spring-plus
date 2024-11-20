@@ -1,46 +1,31 @@
-package org.example.expert.domain.user.entity;
+package org.example.expert.domain.user.entity
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.example.expert.domain.common.entity.Timestamped;
-import org.example.expert.domain.user.enums.UserRole;
+import jakarta.persistence.*
+import org.example.expert.domain.common.entity.Timestamped
+import org.example.expert.domain.user.enums.UserRole
 
-@Getter
 @Entity
-@NoArgsConstructor
 @Table(name = "users")
-public class User extends Timestamped {
+data class User(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Long? = null,
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
     @Column(unique = true)
-    private String email;
-    private String password;
-    private String nickname;
+    var email: String,
+    var password: String? = null,
+    var nickname: String,
+
     @Enumerated(EnumType.STRING)
-    private UserRole userRole;
+    var userRole: UserRole
 
-    public User(String email, String password, String nickname, UserRole userRole) {
-        this.email = email;
-        this.password = password;
-        this.nickname = nickname;
-        this.userRole = userRole;
+) : Timestamped() {
+
+    fun changePassword(password: String?) {
+        this.password = password
     }
 
-    public User(Long id, String email, String nickname, UserRole userRole) {
-        this.id = id;
-        this.email = email;
-        this.nickname = nickname;
-        this.userRole = userRole;
-    }
-
-
-    public void changePassword(String password) {
-        this.password = password;
-    }
-
-    public void updateRole(UserRole userRole) {
-        this.userRole = userRole;
+    fun updateRole(userRole: UserRole) {
+        this.userRole = userRole
     }
 }

@@ -1,38 +1,27 @@
-package org.example.expert.domain.log.entity;
+package org.example.expert.domain.log.entity
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.example.expert.domain.log.enums.EntityType;
+import jakarta.persistence.*
+import org.example.expert.domain.log.enums.EntityType
+import java.time.LocalDateTime
 
-import java.time.LocalDateTime;
-
-@Getter
 @Entity
-@NoArgsConstructor
 @Table(name = "logs")
-public class Log {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private Long userId;
-    private Long targetId;
+data class Log(
+    val userId: Long,
+    val targetId: Long,
 
     @Enumerated(EnumType.STRING)
-    private EntityType targetType;
-    private String actionDescription;
+    private val targetType: EntityType,
+    val actionDescription: String
+) {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private val id: Long? = null
 
     @Column(updatable = false)
-    private LocalDateTime createdAt;
-
-    public Log(Long userId, Long targetId, EntityType targetType, String actionDescription) {
-        this.userId = userId;
-        this.targetId = targetId;
-        this.targetType = targetType;
-        this.actionDescription = actionDescription;
-    }
+    private var createdAt: LocalDateTime? = null
 
     @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+    protected fun onCreate() {
+        this.createdAt = LocalDateTime.now()
     }
 }
