@@ -112,13 +112,69 @@
     ![rds_db.png](images/rds_db.png)
   - 보안 정책<br>
     ![rds_security_rule.png](images/rds_security_rule.png)
-      - 테스트를 확인하기 위해 내 아이피에서는 3306(Mysql DB port)를 허용해 주었습니다.
+      - 테스트를 확인하기 위해 외부접근을 허용하였습니다. 그리고 내 아이피에 대해서는 3306(Mysql DB port)를 허용해 주었습니다.
+      - ec2 인스턴스 보안 그룹을 허용하였고, 그 외 다른 접근은 차단되도록 설정하였습니다.
 - ### S3
   - 그룹 권한<br>
     ![s3-group_permissions.png](images/s3-group_permissions.png)
       - 기본적으로 읽기는 모두 허용, 삭제만 따로 추가해주었습니다.
+      - 어플리케이션에 들어있는 s3 엑세스,시크릿 키가 혹여라도 유출되더라도 피해를 줄이기 위해 최소화된 권한만 부여하였습니다. 
   - Bucket<br>
     ![s3_bucket.png](images/s3_bucket.png)
 
 
 ## 대용량 데이터 개선 
+- ### 테스트 환경
+  - users 테이블에 100만건의 유저 데이터를 넣고, nickname으로 조회 시도하였습니다.<br>
+    ![users_total.png](images/users_total.png)
+  - 소요시간을 계산하기 위해 `aop.ApiPerformanceAspect.class` 에서 호출 전 시간과 호출 후 시간의 차이를 사용하였습니다.
+    
+- ### 관계형 데이터베이스 시스템의 Indexing 사용
+  - `CREATE INDEX idx_nickname ON users(nickname);` 추가
+  - `DESCRIBE users;` 입력해서 테이블에 MUL 적혀있는지 확인 <br>
+    ![index_performance.png](images/index_performance.png)
+
+- ### Redis 사용
+  - wsl로 redis server 설치 및 서비스 실행
+  - app에 redis 설정 적용 하고 어노테이션으로 메서드에 redis 조회 수행되도록 변경<br>
+    ![redis_performance.png](images/redis_performance.png)
+
+- ### 개선 결과
+  - | 방식      | 초기 소요 시간 | 개선 후 소요 시간 | 개선율    |
+    |-----------|--------------|-----------------|-----------|
+    | 기본 조회  | 649ms        | -               | -         |
+    | 인덱스 적용 | 649ms       | 6ms             | 99.08%    |
+    | Redis 사용 | 649ms       | 1ms             | 99.85%    |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
