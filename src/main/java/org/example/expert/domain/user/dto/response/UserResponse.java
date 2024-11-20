@@ -1,12 +1,16 @@
 package org.example.expert.domain.user.dto.response;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 
 @Getter
-public class UserResponse {
+@NoArgsConstructor
+public class UserResponse implements Serializable {
 
-    private final Long id;
-    private final String email;
+    private Long id;
+    private String email;
 
     public UserResponse(Long id, String email) {
         this.id = id;
